@@ -24,8 +24,8 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copiar configuración de nginx personalizada
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Exponer puerto 5304
-EXPOSE 5304
+# Exponer puerto 3504
+EXPOSE 3504
 
 # Iniciar nginx
 #CMD ["nginx", "-g", "daemon off;"]
