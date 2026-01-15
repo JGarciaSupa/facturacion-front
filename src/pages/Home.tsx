@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { config } from '@/lib/config'
 import { authService } from '@/lib/auth'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Search, X, AlertCircle } from 'lucide-react'
 
 interface RucData {
   ruc: string
@@ -67,130 +74,115 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Consulta SUNAT</h1>
-          <p className="text-gray-600 mb-6">Busca información de RUC o por DNI</p>
-
-          <form onSubmit={handleSearch} className="space-y-4">
-            {/* Selector de tipo de búsqueda */}
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="searchType"
-                  value="ruc"
-                  checked={searchType === 'ruc'}
-                  onChange={(e) => setSearchType(e.target.value as 'ruc' | 'dni')}
-                  className="w-4 h-4"
-                />
-                <span className="text-gray-700">Buscar por RUC</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="searchType"
-                  value="dni"
-                  checked={searchType === 'dni'}
-                  onChange={(e) => setSearchType(e.target.value as 'ruc' | 'dni')}
-                  className="w-4 h-4"
-                />
-                <span className="text-gray-700">Buscar por DNI</span>
-              </label>
-            </div>
-
-            {/* Campo de búsqueda */}
-            <div className="flex gap-2 flex-wrap">
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value.replace(/\D/g, ''))}
-                placeholder={searchType === 'ruc' ? 'Ingrese RUC (11 dígitos)' : 'Ingrese DNI (8 dígitos)'}
-                maxLength={searchType === 'ruc' ? 11 : 8}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <div className='flex items-center gap-2'>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-3xl">Consulta SUNAT</CardTitle>
+            <CardDescription>Busca información de RUC o por DNI</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSearch} className="space-y-4">
+              <div className="space-y-3">
+                <Label>Tipo de búsqueda</Label>
+                <RadioGroup
+                  value={searchType}
+                  onValueChange={(value) => setSearchType(value as 'ruc' | 'dni')}
+                  className="flex gap-4"
                 >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="ruc" id="ruc" />
+                    <Label htmlFor="ruc" className="cursor-pointer">Buscar por RUC</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="dni" id="dni" />
+                    <Label htmlFor="dni" className="cursor-pointer">Buscar por DNI</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value.replace(/\D/g, ''))}
+                  placeholder={searchType === 'ruc' ? 'Ingrese RUC (11 dígitos)' : 'Ingrese DNI (8 dígitos)'}
+                  maxLength={searchType === 'ruc' ? 11 : 8}
+                  required
+                  disabled={loading}
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={loading}>
+                  <Search className="mr-2 h-4 w-4" />
                   {loading ? 'Buscando...' : 'Buscar'}
-                </button>
+                </Button>
                 {(result || error) && (
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium"
-                  >
+                  <Button type="button" variant="outline" onClick={handleClear}>
+                    <X className="mr-2 h-4 w-4" />
                     Limpiar
-                  </button>
+                  </Button>
                 )}
               </div>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
 
-        {/* Mensaje de error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-800 font-medium">❌ {error}</p>
-          </div>
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        {/* Resultados */}
         {result && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Información del RUC</h2>
-            
-            <div className="space-y-4">
-              {/* Información básica */}
-              <div className="border-b pb-4">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">Datos Básicos</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <InfoItem label="RUC" value={result.ruc} />
-                  <InfoItem label="Nombre / Razón Social" value={result.nombre_razon_social} className="md:col-span-2" />
-                  <InfoItem label="Estado del Contribuyente" value={result.estado_contribuyente} />
-                  <InfoItem label="Condición del Domicilio" value={result.condicion_domicilio} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Información del RUC</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Datos Básicos</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoItem label="RUC" value={result.ruc} />
+                    <InfoItem label="Nombre / Razón Social" value={result.nombre_razon_social} className="md:col-span-2" />
+                    <InfoItem label="Estado del Contribuyente" value={result.estado_contribuyente} />
+                    <InfoItem label="Condición del Domicilio" value={result.condicion_domicilio} />
+                  </div>
                 </div>
-              </div>
 
-              {/* Ubicación */}
-              <div className="border-b pb-4">
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">Ubicación</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <InfoItem label="Ubigeo" value={result.ubigeo} />
-                  <InfoItem label="Departamento" value={result.departamento} />
-                  <InfoItem label="Tipo de Vía" value={result.tipo_via} />
-                  <InfoItem label="Nombre de Vía" value={result.nombre_via} />
-                  <InfoItem label="Número" value={result.numero} />
-                  <InfoItem label="Interior" value={result.interior} />
-                  <InfoItem label="Código Zona" value={result.codigo_zona} />
-                  <InfoItem label="Tipo Zona" value={result.tipo_zona} />
-                  <InfoItem label="Lote" value={result.lote} />
-                  <InfoItem label="Manzana" value={result.manzana} />
-                  <InfoItem label="Kilómetro" value={result.kilometro} />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Ubicación</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoItem label="Ubigeo" value={result.ubigeo} />
+                    <InfoItem label="Departamento" value={result.departamento} />
+                    <InfoItem label="Tipo de Vía" value={result.tipo_via} />
+                    <InfoItem label="Nombre de Vía" value={result.nombre_via} />
+                    <InfoItem label="Número" value={result.numero} />
+                    <InfoItem label="Interior" value={result.interior} />
+                    <InfoItem label="Código Zona" value={result.codigo_zona} />
+                    <InfoItem label="Tipo Zona" value={result.tipo_zona} />
+                    <InfoItem label="Lote" value={result.lote} />
+                    <InfoItem label="Manzana" value={result.manzana} />
+                    <InfoItem label="Kilómetro" value={result.kilometro} />
+                  </div>
                 </div>
-              </div>
 
-              {/* Información adicional */}
-              {result.extra && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-3">Información Adicional</h3>
-                  <InfoItem label="Extra" value={result.extra} />
-                </div>
-              )}
-            </div>
-          </div>
+                {result.extra && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Información Adicional</h3>
+                    <InfoItem label="Extra" value={result.extra} />
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
   )
 }
 
-// Componente auxiliar para mostrar información
 function InfoItem({ 
   label, 
   value, 
@@ -202,8 +194,8 @@ function InfoItem({
 }) {
   return (
     <div className={className}>
-      <p className="text-sm font-medium text-gray-500">{label}</p>
-      <p className="text-gray-900">{value || 'N/A'}</p>
+      <Label className="text-muted-foreground">{label}</Label>
+      <p className="text-foreground font-medium mt-1">{value || 'N/A'}</p>
     </div>
   )
 }
